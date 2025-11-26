@@ -173,18 +173,30 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 font-sans">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-400 flex items-center gap-2">
-            <TrendingUp /> 美股技術指標監控
-          </h1>
-          <button onClick={refreshAll} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors">
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> 更新報價
+        {/* 優化重點：
+            flex-col (手機上下排) -> md:flex-row (電腦左右排)
+            items-start (手機靠左) -> md:items-center (電腦置中)
+        */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-blue-400 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 md:w-8 md:h-8" /> 美股技術指標監控
+            </h1>
+            <p className="text-slate-400 text-sm mt-1 hidden md:block">即時監控 MA200 (年線) 與 MA20-Week (週線) 支撐位</p>
+          </div>
+          
+          <button 
+            onClick={refreshAll} 
+            className="w-full md:w-auto flex justify-center items-center gap-2 px-4 py-3 md:py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors text-sm md:text-base"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> 
+            {loading ? '更新中...' : '更新報價'}
           </button>
         </div>
 
         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-8 flex gap-2 backdrop-blur-sm">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 text-slate-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input 
               type="text" 
               placeholder="輸入代號 (如 AAPL)..." 
@@ -194,8 +206,8 @@ export default function Home() {
               onKeyDown={(e) => e.key === 'Enter' && handleAddStock()}
             />
           </div>
-          <button onClick={handleAddStock} disabled={loading} className="bg-blue-600 hover:bg-blue-500 px-6 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
-            <Plus /> 新增
+          <button onClick={handleAddStock} disabled={loading} className="bg-blue-600 hover:bg-blue-500 px-4 md:px-6 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 whitespace-nowrap">
+            <Plus size={20} /> <span className="hidden sm:inline">新增</span>
           </button>
         </div>
         {error && <p className="text-red-400 mb-4 text-sm bg-red-900/20 p-2 rounded border border-red-900/50">{error}</p>}
@@ -216,18 +228,35 @@ export default function Home() {
             return (
               <div key={stock.symbol} className={`bg-slate-800 rounded-xl p-5 border transition-all ${stock.isMock ? 'border-yellow-600/50' : alert ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-slate-700'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-bold">{stock.symbol}</h2>
-                      <span className="text-slate-400 text-sm">{stock.name}</span>
-                      {stock.isMock && (
-                        <span className="bg-yellow-900/40 text-yellow-200 text-[10px] px-2 py-0.5 rounded-full border border-yellow-700/50 flex items-center gap-1">
-                          <AlertCircle size={10} />
-                          {stock.errorMessage}
-                        </span>
-                      )}
-                      {alert && <span className="text-red-400 text-xs px-2 py-1 border border-red-500/30 rounded-full font-bold animate-pulse">{alert.message}</span>}
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center justify-between md:justify-start gap-3">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold">{stock.symbol}</h2>
+                        <span className="text-slate-400 text-sm truncate max-w-[100px] md:max-w-none">{stock.name}</span>
+                      </div>
+                      {/* 手機版顯示警示標籤在右側 */}
+                      <div className="flex flex-col items-end md:hidden">
+                         {stock.isMock && (
+                          <span className="bg-yellow-900/40 text-yellow-200 text-[10px] px-2 py-0.5 rounded-full border border-yellow-700/50 flex items-center gap-1 mb-1">
+                            <AlertCircle size={10} />
+                            {stock.errorMessage}
+                          </span>
+                        )}
+                        {alert && <span className="text-red-400 text-xs px-2 py-1 border border-red-500/30 rounded-full font-bold animate-pulse">{alert.message}</span>}
+                      </div>
                     </div>
+                    
+                    {/* 電腦版警示標籤位置 */}
+                    <div className="hidden md:flex items-center gap-2 mt-1">
+                       {stock.isMock && (
+                          <span className="bg-yellow-900/40 text-yellow-200 text-[10px] px-2 py-0.5 rounded-full border border-yellow-700/50 flex items-center gap-1">
+                            <AlertCircle size={10} />
+                            {stock.errorMessage}
+                          </span>
+                        )}
+                        {alert && <span className="text-red-400 text-xs px-2 py-1 border border-red-500/30 rounded-full font-bold animate-pulse">{alert.message}</span>}
+                    </div>
+
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-3xl font-mono font-semibold">${stock.price.toFixed(2)}</span>
                       <span className={`text-sm font-medium ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -237,22 +266,22 @@ export default function Home() {
                     <div className="text-[10px] text-slate-600 mt-1">更新: {stock.lastUpdated.toLocaleTimeString()}</div>
                   </div>
                   
-                  <div className="flex gap-4 w-full md:w-auto">
-                     <div className={`flex-1 md:flex-none p-3 rounded-lg border ${stock.price < stock.ma200 ? 'bg-red-900/20 border-red-800' : 'bg-slate-900/50 border-slate-700'}`}>
+                  <div className="flex gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                     <div className={`flex-1 md:flex-none min-w-[100px] p-3 rounded-lg border ${stock.price < stock.ma200 ? 'bg-red-900/20 border-red-800' : 'bg-slate-900/50 border-slate-700'}`}>
                         <div className="text-xs text-slate-400">MA 200 (日)</div>
                         <div className={`font-mono text-lg ${stock.price < stock.ma200 ? 'text-red-400 font-bold' : 'text-slate-200'}`}>${stock.ma200.toFixed(2)}</div>
                         <div className={`text-[10px] mt-1 ${diff200 < 0 ? 'text-red-400' : 'text-green-400'}`}>
                           {diff200 < 0 ? `低於 ${Math.abs(diff200).toFixed(1)}%` : `高於 ${diff200.toFixed(1)}%`}
                         </div>
                      </div>
-                     <div className={`flex-1 md:flex-none p-3 rounded-lg border ${stock.price < stock.ma20Week ? 'bg-orange-900/20 border-orange-800' : 'bg-slate-900/50 border-slate-700'}`}>
+                     <div className={`flex-1 md:flex-none min-w-[100px] p-3 rounded-lg border ${stock.price < stock.ma20Week ? 'bg-orange-900/20 border-orange-800' : 'bg-slate-900/50 border-slate-700'}`}>
                         <div className="text-xs text-slate-400">MA 20 (週)</div>
                         <div className={`font-mono text-lg ${stock.price < stock.ma20Week ? 'text-orange-400 font-bold' : 'text-slate-200'}`}>${stock.ma20Week.toFixed(2)}</div>
                         <div className={`text-[10px] mt-1 ${diff20Week < 0 ? 'text-orange-400' : 'text-green-400'}`}>
                           {diff20Week < 0 ? `低於 ${Math.abs(diff20Week).toFixed(1)}%` : `高於 ${diff20Week.toFixed(1)}%`}
                         </div>
                      </div>
-                     <button onClick={() => handleRemoveStock(stock.symbol)} className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors"><Trash2 size={20} /></button>
+                     <button onClick={() => handleRemoveStock(stock.symbol)} className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors self-center"><Trash2 size={20} /></button>
                   </div>
                 </div>
               </div>
