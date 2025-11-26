@@ -8,7 +8,7 @@ LINE_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
 LINE_USER_ID = os.environ.get('LINE_USER_ID')
 
 # 監控清單
-WATCHLIST = ['NVDA', 'TSLA', 'AAPL', 'AMD']
+WATCHLIST = ['NVDA', 'TSLA', 'AAPL', 'META', 'AMZN', 'MSFT', 'GOOGL', 'TSM', 'AVGO', 'QQQ', 'SPY', 'IBIT', 'ETHA', 'UNH', 'AMD']
 
 def send_line_push(message_text):
     if not LINE_ACCESS_TOKEN or not LINE_USER_ID:
