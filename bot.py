@@ -33,43 +33,38 @@ def send_line_push(message_text):
         print(f"發送失敗: {e}")
 
 def check_stock(symbol):
-    print(f"分析 {symbol} 中...")
     try:
         stock = yf.Ticker(symbol)
-        df = stock.history(period="2y") 
+        df = stock.history(period="1y") # 抓 1 年數據
         
-        if len(df) < 200: return None
+        if len(df) < 20: return f"{symbol}: 數據不足"
 
         current_price = df['Close'].iloc[-1]
-        ma200 = df['Close'].rolling(window=200).mean().iloc[-1]
-        ma20_week = df['Close'].rolling(window=100).mean().iloc[-1]
-
-        alerts = []
-        if current_price < ma200:
-            diff = ((ma200 - current_price) / ma200) * 100
-            alerts.append(f"⚠️ 跌破年線 (低於 {diff:.1f}%)")
-        if current_price < ma20_week:
-            diff = ((ma20_week - current_price) / ma20_week) * 100
-            alerts.append(f"⚠️ 跌破週線 (低於 {diff:.1f}%)")
-            
-        if alerts:
-            return f"\n【{symbol}】${current_price:.2f}\n" + "\n".join(alerts)
-        return None
+        # 計算簡單的漲跌 (跟昨天比)
+        prev_close = df['Close'].iloc[-2]
+        change_pct = ((current_price - prev_close) / prev_close) * 100
+        
+        # 判斷符號
+        icon = "🔴" if change_pct < 0 else "🟢"
+        
+        return f"{icon} {symbol}: ${current_price:.2f} ({change_pct:+.2f}%)"
+        
     except Exception as e:
         print(f"Error: {e}")
-        return None
+        return f"❌ {symbol}: 讀取失敗"
 
 if __name__ == "__main__":
     today = datetime.now().strftime('%Y-%m-%d')
-    report_content = ""
     
+    # 標題
+    report = f"📅 美股日報 ({today})\n----------------\n"
+    
+    # 收集所有股票狀態
     for symbol in WATCHLIST:
-        alert_msg = check_stock(symbol)
-        if alert_msg:
-            report_content += alert_msg + "\n"
+        status = check_stock(symbol)
+        report += status + "\n"
             
-    if report_content:
-        final_msg = f"📊 美股警報 ({today})\n----------------{report_content}\n請注意風險控制！"
-        send_line_push(final_msg)
-    else:
-        print("今日無警報")
+    report += "\n✅ 系統運作正常！"
+    
+    # 🔥 強制發送訊息 (不管有沒有跌破)
+    send_line_push(report)
